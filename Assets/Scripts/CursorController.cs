@@ -1,4 +1,5 @@
-﻿using R3;
+﻿using Cysharp.Threading.Tasks;
+using R3;
 using R3.Triggers;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -9,6 +10,9 @@ public class CursorController : MonoBehaviour
     public GameObject cursorPrefab; // カーソルのプレハブ
     private GameObject cursorInstance;
     private Vector3Int currentPosition; // カーソルの現在位置
+
+
+    public UnitSelection unitSelection;
     
     [SerializeField] private float moveInterval = 0.2f; // 移動の間隔(秒)
     //[SerializeField] private CameraController cameraController;
@@ -51,6 +55,14 @@ public class CursorController : MonoBehaviour
             .ThrottleFirst(System.TimeSpan.FromSeconds(moveInterval))
             .Subscribe(_ => MoveCursor(Vector3Int.right));
 
+        // マウスによるクリック移動
+        this.UpdateAsObservable()
+            .Where(_ => gameManager.CommandState.Value == CommandStateType.CursorMove)
+            .Where(_ => Input.GetMouseButtonDown(0))
+            .ThrottleFirst(System.TimeSpan.FromSeconds(moveInterval))
+            .Subscribe(_ => MoveCursorToMouseClick());
+
+
         //cameraController.SetDefaultCameraFollow(cursorInstance.transform);
 
         return cursorInstance;
@@ -83,6 +95,29 @@ public class CursorController : MonoBehaviour
         // タイルマップの範囲内に収める処理(例: タイルマップの範囲が決まっていればその範囲内に制限)
         if (IsPositionValid(currentPosition)) {
             cursorInstance.transform.position = tilemap.CellToWorld(currentPosition);
+
+            // 移動用にタイルの色が変更されている場合には、元の色に戻す
+
+        }
+    }
+
+    /// <summary>
+    /// マウスクリックした地点にカーソル移動
+    /// </summary>
+    private void MoveCursorToMouseClick() {
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        // 座標のズレ分の調整値
+        Vector3 offset = new Vector3(0.5f, 0.5f, 0);
+        Vector3Int cellPosition = tilemap.WorldToCell(worldPosition + offset);
+
+        currentPosition = cellPosition;
+
+        if (IsPositionValid(currentPosition)) {
+            cursorInstance.transform.position = tilemap.CellToWorld(currentPosition);
+
+            // マウスクリックの場合、UI コマンドも開けるかチェックする
+            unitSelection.SelectUnitAtCursorPositionAsync().Forget();
 
             // 移動用にタイルの色が変更されている場合には、元の色に戻す
 
