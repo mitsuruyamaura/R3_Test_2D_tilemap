@@ -2846,6 +2846,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tilemap: {fileID: 1884652922}
   cursorPrefab: {fileID: 7184024842877301628, guid: fe78b5087ea4c154183ed67c3aaba836, type: 3}
+  unitSelection: {fileID: 926504072}
   moveInterval: 0.2
 --- !u!4 &1381324213
 Transform:

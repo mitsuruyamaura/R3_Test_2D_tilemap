@@ -35,7 +35,7 @@ public class UnitSelection : MonoBehaviour
         }
     }
 
-    private async UniTask SelectUnitAtCursorPositionAsync() {
+    public async UniTask SelectUnitAtCursorPositionAsync() {
         Vector3Int cursorPosition = cursorController.GetCursorPosition();
         CharaUnit unitAtPosition = GetUnitAtPosition(cursorPosition);
 
